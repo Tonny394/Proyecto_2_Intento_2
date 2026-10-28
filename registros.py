@@ -27,6 +27,9 @@ def validar_contacto(datos):
     c = {"id": parse_id(datos.get("id", ""))}
     for nombre, largo in CAMPOS[1:]:
         valor = " ".join(str(datos.get(nombre, "")).split())  # sin saltos ni espacios dobles
+        if len(valor.encode("utf-8")) > largo:
+            raise AgendaError(f"'{nombre}' excede el máximo de {largo} bytes.")
+        c[nombre] = valor
     if not c["nombre"]:
         raise AgendaError("El nombre es obligatorio.")
     if c["correo"] and "" not in c["correo"]:

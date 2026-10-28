@@ -43,6 +43,18 @@ class Dialogo(tk.Toplevel):
 
     def guardar(self):
         datos = {nombre: var.get() for nombre, var in self.vars.items()}
+        if self.modo == "agregar":
+            c, num, pos = agenda.agregar(datos)
+            for var in self.vars.values():
+                var.set("")
+        else:
+            if self.id_cargado is None:
+                raise AgendaError("Primero busque el contacto.")
+            if parse_id(datos["id"]) != self.id_cargado:
+                raise AgendaError("El ID cambió. Busque el contacto de nuevo.")
+            c, num, pos = agenda.modificar(datos)
+        self.app.log(f"{self.modo.capitalize()} ID {c['id']}: registro #{num}, seek({pos[0]}), "
+                     f"tell() antes={pos[0]} después={pos[1]}")
 
 
 class App(tk.Tk):
