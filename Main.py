@@ -4,12 +4,18 @@ import tkinter as tk
 from datetime import datetime
 from tkinter import messagebox
 
+import agenda
+from registros import CAMPOS, RUTA_DATOS, TAM_REGISTRO, AgendaError, crear_carpeta, parse_id
+
 def manejar_errores(func):
     """Cualquier error se muestra en un mensaje; la aplicación no se cae."""
     functools.wraps(func)
     def envoltura(*args, **kwargs):
         try:
+            crear_carpeta()
             return func(*args, **kwargs)
+        except AgendaError as e:
+            messagebox.showwarning("Aviso", str(e))
         except PermissionError:
             messagebox.showerror("Error", "No hay permisos para leer o escribir el archivo.")
         except OSError as e:
@@ -23,6 +29,14 @@ class Dialogo(tk.Toplevel):
         super().__init__(app)
         self.app, self.modo, self.id_cargado = app, modo, None
         self.title(modo.capitalize())
+        self.vars = {nombre: tk.StringVar() for nombre, _ in CAMPOS}
+        for fila, (nombre, _) in enumerate(CAMPOS):
+            tk.Label(self, text=nombre).grid(row=fila, column=0)
+            tk.Entry(self, textvariable=self.vars[nombre]).grid(row=fila, column=1)
+        if modo != "agregar":
+            tk.Button(self, text="Buscar", command=self.buscar).grid(row=5, column=0)
+        if modo != "buscar":
+            tk.Button(self, text="Guardar", command=self.guardar).grid(row=5, column=1)
 
     def buscar(self):
         self.id_cargado = None
