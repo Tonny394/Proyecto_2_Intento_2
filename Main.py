@@ -4,11 +4,31 @@ import tkinter as tk
 from datetime import datetime
 from tkinter import messagebox
 
+def manejar_errores(func):
+    """Cualquier error se muestra en un mensaje; la aplicación no se cae."""
+    functools.wraps(func)
+    def envoltura(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except PermissionError:
+            messagebox.showerror("Error", "No hay permisos para leer o escribir el archivo.")
+        except OSError as e:
+            messagebox.showerror("Error de archivo", str(e))
+        except Exception as e:
+            messagebox.showerror("Error inesperado", f"{type(e).__name__}: {e}")
+    return envoltura
 
 class Dialogo(tk.Toplevel):
     def __init__(self, app, modo):  # modo: "agregar", "buscar" o "modificar"
         super().__init__(app)
         self.app, self.modo, self.id_cargado = app, modo, None
+        self.title(modo.capitalize())
+
+    def buscar(self):
+        self.id_cargado = None
+
+    def guardar(self):
+        datos = {nombre: var.get() for nombre, var in self.vars.items()}
 
 
 class App(tk.Tk):
