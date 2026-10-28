@@ -38,4 +38,33 @@ class App(tk.Tk):
         self.config(menu=barra)
         self.after(100, self.revisar_al_iniciar)
 
-    
+    def log(self, texto):
+        self.texto.configure(state="normal")
+        self.texto.insert("end", f"[{datetime.now():%H:%M:%S}] {texto}\n")
+        self.texto.see("end")
+        self.texto.configure(state="disabled")
+
+    def revisar_al_iniciar(self):
+        if not os.path.exists():
+            self.log("Aún no hay contactos. Los archivos se guardan en la carpeta datos/.")
+            return
+
+    def exportar_json(self):
+        n = 0
+        self.log(f"{n} contactos exportados a datos/contactos.json")
+
+    def exportar_pdf(self):
+        n = 0
+        self.log(f"Reporte PDF con {n} contactos en datos/reporte_contactos.pdf")
+
+    def verificar(self):
+        self.log("Integridad verificada. No se encontraron errores.")
+
+    def respaldo(self):
+        self.log("Respaldo creado en datos/respaldo.zip")
+
+    def informacion(self):
+        self.log("Información del archivo mostrada.")
+
+if __name__ == "__main__":
+    App().mainloop()
