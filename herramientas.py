@@ -21,10 +21,32 @@ def info(): #Tamaño y hora de la ultima modificación del archivo
     }
 
 def respaldar():
-    pass
+    if not os.path.exists(RUTA_DATOS):
+        raise AgendaError("Todavía no hay archivo de contactos para respaldar.")
+    archivos = [RUTA_DATOS]
+    if os.path.exists(RUTA_INDICE):
+        archivos.append(RUTA_INDICE)
+    ruta_zip = os.path.join(CARPETA, datetime.now().strftime("respaldo_%Y%m%d_%H%M%S.zip"))
+    with zipfile.ZipFile(ruta_zip, "w", zipfile.ZIP_DEFLATED) as z:
+        for ruta in archivos:
+            z.write(ruta, arcname=os.path.basename(ruta))
+    original = sum(os.path.getsize(r) for r in archivos)
+    return ruta_zip, original, os.path.getsize(ruta_zip)
 
 def problema_hash():
-    pass
+    if not os.path.exists(RUTA_DATOS):
+        return None
+    try:
+        with open(RUTA_HASH, "r", encoding="utf-8") as f:
+            guardado = f.read().strip()
+    except FileNotFoundError:
+        return "No existe contactos.sha256: no se puede comprobar la integridad."
+    except UnicodeDecodeError:
+        guardado = ""
+    if guardado != calcular_hash():
+        return ("El hash SHA-256 no coincide: el archivo de contactos fue modificado "
+                "fuera de la aplicación.")
+    return None
 
 def revisar():
     problemas, real = [], {}

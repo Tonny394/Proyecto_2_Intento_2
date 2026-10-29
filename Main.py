@@ -6,6 +6,7 @@ from tkinter import messagebox
 
 import agenda
 import herramientas
+import exportar
 from registros import CAMPOS, RUTA_DATOS, TAM_REGISTRO, AgendaError, crear_carpeta, parse_id
 
 def manejar_errores(func):
@@ -109,11 +110,11 @@ class App(tk.Tk):
             self.log("Archivo íntegro (SHA-256 coincide).")
 
     def exportar_json(self):
-        n = 0
+        n = exportar.exportar_json()
         self.log(f"{n} contactos exportados a datos/contactos.json")
 
     def exportar_pdf(self):
-        n = 0
+        n = exportar.exportar_pdf()
         self.log(f"Reporte PDF con {n} contactos en datos/reporte_contactos.pdf")
 
     def verificar(self):
