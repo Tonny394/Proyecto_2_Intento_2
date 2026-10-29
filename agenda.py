@@ -79,10 +79,37 @@ def agregar(datos):
     return c, num, pos
 
 def buscar(id_):
-    pass
+    id_ = parse_id(id_)
+    indice = leer_indice()
+    if id_ not in indice:
+        raise AgendaError(f"No existe un contacto con ID {id_}.")
+    c, pos = leer_registro(indice[id_])
+    if c["id"] != id_:
+        raise AgendaError("El índice no coincide con el archivo. Use Herramientas > "
+                          "Verificar integridad.")
+    return c, indice[id_], pos
 
 def modificar(datos):
-    pass
+    c = validar_contacto(datos)
+    indice = leer_indice()
+    if c["id"] not in indice:
+        raise AgendaError(f"No existe un contacto con ID {c['id']}.")
+    num = indice[c["id"]]
+    actual, _ = leer_registro(num)
+    if actual["id"] != c["id"]:
+        raise AgendaError("El índice no coincide con el archivo. Use Herramientas > "
+                          "Verificar integridad.")
+    pos = escribir_registro(num, c)
+    guardar_hash()
+    return c, num, pos
 
 def listar():
-    pass
+    contactos = []
+    if os.path.exists(RUTA_DATOS):
+        with open(RUTA_DATOS, "rb") as f:
+            while True:
+                datos = f.read(TAM_REGISTRO)
+                if not datos:
+                    break
+                contactos.append(desempaquetar(datos))
+    return contactos

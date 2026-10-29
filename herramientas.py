@@ -27,4 +27,31 @@ def problema_hash():
     pass
 
 def revisar():
-    pass
+    problemas, real = [], {}
+    tam = tam_datos()
+    if tam % TAM_REGISTRO:
+        problemas.append(f"El tamaño del archivo ({tam} bytes) no es múltiplo de {TAM_REGISTRO}.")
+    if tam:
+        with open(RUTA_DATOS, "rb") as f:
+            for num in range(tam // TAM_REGISTRO):
+                try:
+                    c = desempaquetar(f.read(TAM_REGISTRO))
+                except AgendaError:
+                    problemas.append(f"El registro #{num} está dañado.")
+                    continue
+                if c["id"] in real:
+                    problemas.append(f"ID {c['id']} duplicado (registros #{real[c['id']]} y #{num}).")
+                else:
+                    real[c["id"]] = num
+    try:
+        indice = leer_indice()
+    except AgendaError:
+        indice = None
+    if indice != real:
+        problemas.append("El índice no existía, estaba dañado o no coincidía con el archivo: "
+                         "fue reconstruido.")
+        guardar_indice(real)
+    texto_hash = problema_hash()
+    if texto_hash:
+        problemas.append(texto_hash)
+    return problemas

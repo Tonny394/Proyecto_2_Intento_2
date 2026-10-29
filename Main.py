@@ -41,6 +41,12 @@ class Dialogo(tk.Toplevel):
 
     def buscar(self):
         self.id_cargado = None
+        c, num, pos = agenda.buscar(self.vars["id"].get())
+        for nombre in self.vars:
+            self.vars[nombre].set(c[nombre])
+        self.id_cargado = c["id"]
+        self.app.log(f"Buscar ID {c['id']}: registro #{num}, seek({pos[0]}), "
+                     f"tell() antes={pos[0]} después={pos[1]}")
 
     def guardar(self):
         datos = {nombre: var.get() for nombre, var in self.vars.items()}
@@ -92,10 +98,15 @@ class App(tk.Tk):
         self.texto.configure(state="disabled")
 
     def revisar_al_iniciar(self):
-        if not os.path.exists():
+        if not os.path.exists(RUTA_DATOS):
             self.log("Aún no hay contactos. Los archivos se guardan en la carpeta datos/.")
             return
         problemas = herramientas.revisar()
+        if problemas:
+            self.log("Advertencia: " + " | ".join(problemas))
+            messagebox.showwarning("Verificación al iniciar", "\n\n".join(problemas))
+        else:
+            self.log("Archivo íntegro (SHA-256 coincide).")
 
     def exportar_json(self):
         n = 0
@@ -109,9 +120,18 @@ class App(tk.Tk):
         if not os.path.exists(RUTA_DATOS):
             raise AgendaError("Todavía no existe el archivo de contactos.")
         problemas = herramientas.revisar()
+        if problemas:
+            messagebox.showwarning("Integridad", "\n\n".join(problemas))
+        else:
+            messagebox.showinfo("Integridad", "Todo en orden.")
+        self.log("Verificación: " + (" | ".join(problemas) if problemas else "todo en orden."))
 
     def respaldo(self):
         ruta, original, comprimido = herramientas.respaldar()
+        messagebox.showinfo("Respaldo", f"Creado: {os.path.basename(ruta)} (en datos/)\n"
+                            f"Tamaño original: {original} bytes\n"
+                            f"Tamaño comprimido: {comprimido} bytes")
+        self.log(f"Respaldo {os.path.basename(ruta)}: {original} -> {comprimido} bytes")
 
     def informacion(self):
         i = herramientas.info()
