@@ -5,6 +5,7 @@ from datetime import datetime
 from tkinter import messagebox
 
 import agenda
+import herramientas
 from registros import CAMPOS, RUTA_DATOS, TAM_REGISTRO, AgendaError, crear_carpeta, parse_id
 
 def manejar_errores(func):
@@ -94,6 +95,7 @@ class App(tk.Tk):
         if not os.path.exists():
             self.log("Aún no hay contactos. Los archivos se guardan en la carpeta datos/.")
             return
+        problemas = herramientas.revisar()
 
     def exportar_json(self):
         n = 0
@@ -104,13 +106,23 @@ class App(tk.Tk):
         self.log(f"Reporte PDF con {n} contactos en datos/reporte_contactos.pdf")
 
     def verificar(self):
-        self.log("Integridad verificada. No se encontraron errores.")
+        if not os.path.exists(RUTA_DATOS):
+            raise AgendaError("Todavía no existe el archivo de contactos.")
+        problemas = herramientas.revisar()
 
     def respaldo(self):
-        self.log("Respaldo creado en datos/respaldo.zip")
+        ruta, original, comprimido = herramientas.respaldar()
 
     def informacion(self):
-        self.log("Información del archivo mostrada.")
+        i = herramientas.info()
+        si_no = lambda valor: "Sí" if valor else "No"
+        messagebox.showinfo("Información del archivo",
+                            f"Archivo: {i['ruta']}\n"
+                            f"Tamaño: {i['tamaño']} bytes ({i['registros']} registros de "
+                            f"{TAM_REGISTRO} bytes)\n"
+                            f"Última modificación: {i['modificado']}\n"
+                            f"Lectura: {si_no(i['lectura'])}\n"
+                            f"Escritura: {si_no(i['escritura'])}")
 
 if __name__ == "__main__":
     App().mainloop()
