@@ -40,6 +40,7 @@ class Dialogo(tk.Toplevel):
         if modo != "buscar":
             tk.Button(self, text="Guardar", command=self.guardar).grid(row=5, column=1)
 
+    @manejar_errores
     def buscar(self):
         self.id_cargado = None
         c, num, pos = agenda.buscar(self.vars["id"].get())
@@ -49,6 +50,7 @@ class Dialogo(tk.Toplevel):
         self.app.log(f"Buscar ID {c['id']}: registro #{num}, seek({pos[0]}), "
                      f"tell() antes={pos[0]} después={pos[1]}")
 
+    @manejar_errores
     def guardar(self):
         datos = {nombre: var.get() for nombre, var in self.vars.items()}
         if self.modo == "agregar":
@@ -92,12 +94,14 @@ class App(tk.Tk):
         self.config(menu=barra)
         self.after(100, self.revisar_al_iniciar)
 
+    @manejar_errores
     def log(self, texto):
         self.texto.configure(state="normal")
         self.texto.insert("end", f"[{datetime.now():%H:%M:%S}] {texto}\n")
         self.texto.see("end")
         self.texto.configure(state="disabled")
 
+    @manejar_errores
     def revisar_al_iniciar(self):
         if not os.path.exists(RUTA_DATOS):
             self.log("Aún no hay contactos. Los archivos se guardan en la carpeta datos/.")
@@ -109,14 +113,17 @@ class App(tk.Tk):
         else:
             self.log("Archivo íntegro (SHA-256 coincide).")
 
+    @manejar_errores
     def exportar_json(self):
         n = exportar.exportar_json()
         self.log(f"{n} contactos exportados a datos/contactos.json")
 
+    @manejar_errores
     def exportar_pdf(self):
         n = exportar.exportar_pdf()
         self.log(f"Reporte PDF con {n} contactos en datos/reporte_contactos.pdf")
 
+    @manejar_errores
     def verificar(self):
         if not os.path.exists(RUTA_DATOS):
             raise AgendaError("Todavía no existe el archivo de contactos.")
@@ -127,6 +134,7 @@ class App(tk.Tk):
             messagebox.showinfo("Integridad", "Todo en orden.")
         self.log("Verificación: " + (" | ".join(problemas) if problemas else "todo en orden."))
 
+    @manejar_errores
     def respaldo(self):
         ruta, original, comprimido = herramientas.respaldar()
         messagebox.showinfo("Respaldo", f"Creado: {os.path.basename(ruta)} (en datos/)\n"
@@ -134,6 +142,7 @@ class App(tk.Tk):
                             f"Tamaño comprimido: {comprimido} bytes")
         self.log(f"Respaldo {os.path.basename(ruta)}: {original} -> {comprimido} bytes")
 
+    @manejar_errores
     def informacion(self):
         i = herramientas.info()
         si_no = lambda valor: "Sí" if valor else "No"
